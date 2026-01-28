@@ -1,6 +1,4 @@
 # Move generation functions for chess
-
-
 def findPossibleMoves(boardDict):
     #    'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     """
@@ -58,7 +56,7 @@ def getPawnMoves(boardDict, square, isWhite, letters, numbers):
     if 0 <= new_row < 8:
         new_square = square[0] + numbers[new_row]
         if boardDict[new_square] == '.':
-            moves.append(f"{square}-{new_square}")
+            moves.append(f"{new_square}")
     
     # Diagonal captures
     for col_offset in [-1, 1]:
@@ -68,7 +66,7 @@ def getPawnMoves(boardDict, square, isWhite, letters, numbers):
             new_square = letters[new_col] + numbers[new_row]
             target = boardDict[new_square]
             if target != '.' and ((isWhite and target.islower()) or (not isWhite and target.isupper())):
-                moves.append(f"{square}-{new_square}")
+                moves.append(f"{square[0]}x{new_square}")
     
     return moves
 
@@ -85,22 +83,24 @@ def getKnightMoves(boardDict, square, isWhite, letters, numbers):
         if 0 <= new_col < 8 and 0 <= new_row < 8:
             new_square = letters[new_col] + numbers[new_row]
             target = boardDict[new_square]
-            if target == '.' or ((isWhite and target.islower()) or (not isWhite and target.isupper())):
-                moves.append(f"{square}-{new_square}")
+            if target == '.':
+                moves.append(f"N{new_square}")
+            elif (isWhite and target.islower()) or (not isWhite and target.isupper()):
+                moves.append(f"Nx{new_square}")
     
     return moves
 
 
 def getBishopMoves(boardDict, square, isWhite, letters, numbers):
-    return get_diagonal_moves(boardDict, square, isWhite, letters, numbers)
+    return get_diagonal_moves(boardDict, square, isWhite, letters, numbers, 'B')
 
 
 def getRookMoves(boardDict, square, isWhite, letters, numbers):
-    return get_straight_moves(boardDict, square, isWhite, letters, numbers)
+    return get_straight_moves(boardDict, square, isWhite, letters, numbers, 'R')
 
 
 def getQueenMoves(boardDict, square, isWhite, letters, numbers):
-    return get_diagonal_moves(boardDict, square, isWhite, letters, numbers) + get_straight_moves(boardDict, square, isWhite, letters, numbers)
+    return get_diagonal_moves(boardDict, square, isWhite, letters, numbers, 'Q') + get_straight_moves(boardDict, square, isWhite, letters, numbers, 'Q')
 
 
 def getKingMoves(boardDict, square, isWhite, letters, numbers):
@@ -115,13 +115,15 @@ def getKingMoves(boardDict, square, isWhite, letters, numbers):
         if 0 <= new_col < 8 and 0 <= new_row < 8:
             new_square = letters[new_col] + numbers[new_row]
             target = boardDict[new_square]
-            if target == '.' or ((isWhite and target.islower()) or (not isWhite and target.isupper())):
-                moves.append(f"{square}-{new_square}")
+            if target == '.':
+                moves.append(f"K{new_square}")
+            elif ((isWhite and target.islower()) or (not isWhite and target.isupper())):
+                moves.append(f"Kx{new_square}")
     
     return moves
 
 
-def get_diagonal_moves(boardDict, square, isWhite, letters, numbers):
+def get_diagonal_moves(boardDict, square, isWhite, letters, numbers, piece):
     moves = []
     col = letters.index(square[0])
     row = numbers.index(square[1])
@@ -133,9 +135,9 @@ def get_diagonal_moves(boardDict, square, isWhite, letters, numbers):
             new_square = letters[new_col] + numbers[new_row]
             target = boardDict[new_square]
             if target == '.':
-                moves.append(f"{square}-{new_square}")
+                moves.append(f"{piece}{new_square}")
             elif (isWhite and target.islower()) or (not isWhite and target.isupper()):
-                moves.append(f"{square}-{new_square}")
+                moves.append(f"{piece}x{new_square}")
                 break
             else:
                 break
@@ -145,7 +147,7 @@ def get_diagonal_moves(boardDict, square, isWhite, letters, numbers):
     return moves
 
 
-def get_straight_moves(boardDict, square, isWhite, letters, numbers):
+def get_straight_moves(boardDict, square, isWhite, letters, numbers, piece):
     moves = []
     col = letters.index(square[0])
     row = numbers.index(square[1])
@@ -157,9 +159,9 @@ def get_straight_moves(boardDict, square, isWhite, letters, numbers):
             new_square = letters[new_col] + numbers[new_row]
             target = boardDict[new_square]
             if target == '.':
-                moves.append(f"{square}-{new_square}")
+                moves.append(f"{piece}{new_square}")
             elif (isWhite and target.islower()) or (not isWhite and target.isupper()):
-                moves.append(f"{square}-{new_square}")
+                moves.append(f"{piece}x{new_square}")
                 break
             else:
                 break
@@ -168,6 +170,54 @@ def get_straight_moves(boardDict, square, isWhite, letters, numbers):
     
     return moves
 
+def findBestMove(possibleGoodMoves):
+    pass
+
+def findPossibleGoodMoves(possibleMoves):
+    list = [] #[[move, type], [move, type], [move, type], [move, type], [move, type], [move, type]]
+    for move in possibleMoves:
+        if move not in list:
+            if isTake(move):
+                list.append(move, 'take')
+            if isAttack(move):
+                list.append(move, 'attackPiece')
+            if isDefend(move):
+                list.append(move, 'defendPiece')
+            if isCastle(move):
+                list.append(move, 'castle')
+            if isDevelop(move):
+                list.append(move, 'develop')
+            if attackKing(move):
+                list.append(move, 'attackKing')
+            if isMoveStrongPieceTowardKing(move):
+                list.append(move, 'prepareAttackKing')
+            if isMovePawnIntoCentre(move):
+                list.append(move, 'controlCentre')
+    return list
+
+def isTake(move):
+    pass
+
+def isAttack(move):
+    pass
+
+def isDefend(move):
+    pass
+
+def isCastle(move):
+    pass
+
+def isDevelop(move):
+    pass
+
+def attackKing(move):
+    pass
+
+def isMoveStrongPieceTowardKing(move):
+    pass
+
+def isMovePawnIntoCentre(move):
+    pass
 
 def turnIntoDict(fen):
     parts = fen.split(' ')
@@ -203,20 +253,6 @@ def turnIntoDict(fen):
     newDict['enpassant'] = data[10]
     newDict['halfmoves'] = data[11]
     newDict['fullmoves'] = data[12]
-
-    for letter in letters:
-        for number in numbers:
-            if (letter + '-file') in newDict:
-                newDict[(letter + '-file')] += newDict[(letter + number)]
-            else:
-                newDict[(letter + '-file')] = newDict[(letter + number)]
-    
-    for number in numbers:
-        for letter in letters:
-            if ('rank-' + number) in newDict:
-                newDict[('rank-' + number)] += newDict[(letter + number)]
-            else:
-                newDict[('rank-' + number)] = newDict[(letter + number)]
     
     return newDict
 
@@ -230,4 +266,11 @@ boardDict = turnIntoDict(boardInput)
 possibleMoves = findPossibleMoves(boardDict)
 
 print(possibleMoves)
+
+'''
+possibleGoodMoves = findPossibleGoodMoves(possibleMoves)
+bestMove = findBestMove(possibleGoodMoves)
+
+print(bestMove)
+'''
 
